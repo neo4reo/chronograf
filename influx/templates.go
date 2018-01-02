@@ -92,10 +92,10 @@ func AutoGroupBy(resolution, pixelsPerPoint int64, duration time.Duration) strin
 		if msPerPixel < 1.0 {
 			msPerPixel = 1.0
 		}
-		return "time(" + strconv.FormatInt(int64(msPerPixel), 10) + "ms)"
+		return strconv.FormatInt(int64(msPerPixel), 10) + "ms"
 	}
 	// If groupby is more than 1 second round to the second
-	return "time(" + strconv.FormatInt(int64(secPerPixel), 10) + "s)"
+	return strconv.FormatInt(int64(secPerPixel), 10) + "s"
 }
 
 // TemplateReplace replaces templates with values within the query string
