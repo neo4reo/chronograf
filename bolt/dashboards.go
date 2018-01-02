@@ -3,6 +3,7 @@ package bolt
 import (
 	"context"
 	"strconv"
+	"strings"
 
 	"github.com/boltdb/bolt"
 	"github.com/influxdata/chronograf"
@@ -69,6 +70,25 @@ func (d *DashboardsStore) Migrate(ctx context.Context) error {
 			if err := d.Update(ctx, board); err != nil {
 				return nil
 			}
+		}
+	}
+
+	// Migrate dashboard cells that have the old use of `... GROUP BY :interval:`
+	// to be `... GROUP BY time(:interval:)`
+	for _, board := range boards {
+		for i, cell := range board.Cells {
+			for j, query := range cell.Queries {
+				// Replace the query it it contains :interval: but not time(:interval:)
+				if strings.Contains(query.Command, ":interval") &&
+					!strings.Contains(query.Command, "time(:interval:)") {
+					query.Command = strings.Replace(query.Command, ":interval:", "time(:interval:)", -1)
+					cell.Queries[j] = query
+				}
+			}
+			board.Cells[i] = cell
+		}
+		if err := d.Update(ctx, board); err != nil {
+			return err
 		}
 	}
 
